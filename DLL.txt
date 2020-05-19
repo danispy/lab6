@@ -1,0 +1,72 @@
+Configuration	DLL
+STM32CubeMX 	4.21.0
+Date	02/11/2019
+MCU	STM32F303RETx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+SYS	Serial Wire	SYS_JTCK-SWCLK	PA14
+SYS	Serial Wire	SYS_JTMS-SWDIO	PA13
+SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+TIM1	Internal Clock	TIM1_VS_ClockSourceINT	VP_TIM1_VS_ClockSourceINT
+TIM2	Internal Clock	TIM2_VS_ClockSourceINT	VP_TIM2_VS_ClockSourceINT
+USART2	Asynchronous	USART2_RX	PA3
+USART2	Asynchronous	USART2_TX	PA2
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+16	PA2	USART2_TX	
+17	PA3	USART2_RX	
+23	PA7	GPIO_Output	Phy_tx_valid
+26	PB0	GPIO_Output	Phy_tx_data_bus_pin0
+27	PB1	GPIO_Output	Phy_tx_data_bus_pin1
+28	PB2	GPIO_Output	Phy_tx_data_bus_pin2
+29	PB10	GPIO_Input	Phy_rx_data_bus_pin2
+30	PB11	GPIO_Input	Phy_rx_data_bus_pin3
+33	PB12	GPIO_Input	Phy_rx_data_bus_pin4
+34	PB13	GPIO_Input	Phy_rx_data_bus_pin5
+35	PB14	GPIO_Input	Phy_rx_data_bus_pin6
+36	PB15	GPIO_Input	Phy_rx_data_bus_pin7
+37	PC6	GPIO_Input	Phy_rx_valid
+38	PC7	GPIO_Input	Phy_tx_busy
+39	PC8	GPIO_Input	Phy_reset
+40	PC9	GPIO_EXTI9	Phy_clock
+46	PA13	SYS_JTMS-SWDIO	
+49	PA14	SYS_JTCK-SWCLK	
+55	PB3	GPIO_Output	Phy_tx_data_bus_pin3
+56	PB4	GPIO_Output	Phy_tx_data_bus_pin4
+57	PB5	GPIO_Output	Phy_tx_data_bus_pin5
+58	PB6	GPIO_Output	Phy_tx_data_bus_pin6
+59	PB7	GPIO_Output	Phy_tx_data_bus_pin7
+61	PB8	GPIO_Input	Phy_rx_data_bus_pin0
+62	PB9	GPIO_Input	Phy_rx_data_bus_pin1
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : DLL
+Project Folder : D:\Dropbox\Network1Projects\working lubs\Lab6 Stop&Wait\DLL
+Toolchain / IDE : MDK-ARM V5
+Firmware Package Name and Version : STM32Cube FW_F3 V1.8.0
+
+
+Code Generation Settings : 
+STM32Cube Firmware Library Package : Copy all used libraries into the project folder
+Generate peripheral initialization as a pair of '.c/.h' files per peripheral : No
+Backup previously generated files when re-generating : No
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : No
+
+
+Toolchains Settings : 
+Compiler Optimizations : Balanced Size/Speed
+
+
+
+
+
+
