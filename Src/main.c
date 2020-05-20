@@ -129,13 +129,75 @@ extern Ethernet_req* getTxRequeset(void);						//get from upper_layer data to tr
 
 void MAC_TX()
 {
+	uint8_t* frame;
+	uint16_t data_size;
+	uint32_t frame_size;
+	uint32_t i;
 	if (isNewTxRequest() && gap_time_passed)
 	{
 		Ethernet_req* temp = getTxRequeset();
+		data_size = temp->payloadSize[0] + (temp->payloadSize[1]*256); 
+		
+		if(data_size < 42)
+		{
+			frame = (uint8_t *)malloc(72*sizeof(uint8_t));
+			frame_size = 42;
+		}
+		else
+		{
+			frame = (uint8_t *)malloc((data_size+30)*sizeof(uint8_t));
+			frame_size = data_size;
+		}
+			
+		for(i=0; i<frame_size+30; i++)
+		{
+			if(i < 7) //preamble 
+			{
+				frame[i] = 0xAA;
+			}
+			if(i == 7) //last preamble
+			{
+				frame[i] = 0xAB;
+			}
+				
+			if(i >=8 && i <= 13) //destination Mac be hearot 
+			{
+				frame[i] = temp->destinationMac[i-8];
+			}
+				
+			if(i >=14 && i <= 19) //source Mac gam be hearot 
+			{
+				frame[i] = temp->sourceMac[i-14];
+			}
+				
+			if((i >=20 && i <= 23)|| (i >=26 && i < 26+frame_size-data_size)) //VLAN or Supplementary zeros of paylod
+			{
+				frame[i] = 0;
+			}
+				
+			if(i == 24) //Length
+			{
+				frame[i+1] = temp->payloadSize[0]; 
+			}
+			if(i == 25) //Length
+			{
+				frame[i-1] = temp->payloadSize[1];
+			}				
+			if(i >=26+frame_size-data_size && i < 26+frame_size) //Data
+			{
+				frame[i] = temp->payload[i-(26+frame_size-data_size)];
+			}	
+			if(i >= 26+frame_size) //CRC
+			{
+				
+			}
+			
+		}
+			
 		
 		
 		//in the end of using 'temp' you have to free memory:
-		free((void*)temp->payload);
+		free((void*)temp->payload); 
 		free(temp);
 	}
 	
