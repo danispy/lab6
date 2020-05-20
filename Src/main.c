@@ -46,6 +46,10 @@
 #include "template.h" 
 
 #define DEBUG debug()
+#define CRC_ERROR 100
+#define FRAME_LENGTH_ERROR 101
+#define PAYLOAD_LENGTH_ERROR 102 //must be greater than 42 and lesser than 1500
+#define PREAMBLE_ERROR 103
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -116,7 +120,75 @@ void LLC_RX()
 
 void MAC_RX()
 {
-	
+	uint32_t Rx_CRC_res;
+	uint32_t Tx_CRC_res;
+	static Ethernet_res frame_res;
+	uint32_t i;
+	static uint32_t error = 0;
+	uint32_t frame_counter = 1;
+	uint8_t* frame = (uint8_t*)malloc(sizeof(uint8_t));
+	static uint32_t timer_on = 0;
+	if(isRxByteReady())
+	{
+		if(timer_on)
+		{
+			HAL_TIM_Base_Stop(&htim2);
+			HAL_TIM_Base_Stop_IT(&htim2);
+			timer_on = 0;
+		}
+		timer_on = 0;
+		if(frame_counter==1)
+			frame[0] = getByte();
+		frame = (uint8_t*)calloc(1,sizeof(uint8_t));
+		frame[frame_counter] = getByte();
+		frame_counter++;
+		HAL_TIM_Base_Start(&htim2);
+		HAL_TIM_Base_Start_IT(&htim2);
+		timer_on = 0;
+
+	}
+	else if(frame_ended) //start buliding the frame
+	{
+		if(frame_counter < 64 || frame_counter > 1530) // frame length error
+		{
+			frame_res.syndrom = FRAME_LENGTH_ERROR;
+		}
+		else
+		{
+			for(i = 0; i < 7; i++)
+			{
+				if(frame[i] != 0xAA)
+				{
+					frame_res.syndrom = PREAMBLE_ERROR;
+					error = 1;
+				}
+					
+			}
+			if(frame[7] != 0xAB)
+			{
+				frame_res.syndrom = PREAMBLE_ERROR;
+				error = 1;
+			}
+			if(!error)
+			{
+				HAL_CRC_Calculate(&hcrc,(uint32_t*)&frame[8],1);
+				for(i = 9; i<frame_counter - 4; i++) //might have to build eth_res struct here 
+				{
+					Rx_CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[8],1);
+				}
+				Tx_CRC_res = frame[frame_counter-4] + frame[frame_counter-3]*256 + frame[frame_counter-2]*65536 + frame[frame_counter-1]*(2^24); 
+				if(Tx_CRC_res != Rx_CRC_res)
+				{
+					frame_res.syndrom = CRC_ERROR;
+					error = 1;
+				}
+				//TO DO: fuck shit up 
+			}
+
+		}
+		
+	}
+		
 }
 
 /* Dll Tx functions */
@@ -133,6 +205,7 @@ void MAC_TX()
 	uint16_t data_size;
 	uint32_t frame_size;
 	uint32_t i;
+	uint32_t CRC_res;
 	if (isNewTxRequest() && gap_time_passed)
 	{
 		Ethernet_req* temp = getTxRequeset();
@@ -163,36 +236,56 @@ void MAC_TX()
 			if(i >=8 && i <= 13) //destination Mac be hearot 
 			{
 				frame[i] = temp->destinationMac[i-8];
+				if(i==8) 
+					HAL_CRC_Calculate(&hcrc,(uint32_t*)&frame[i],1);
+				else
+					HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
 			}
 				
 			if(i >=14 && i <= 19) //source Mac gam be hearot 
 			{
 				frame[i] = temp->sourceMac[i-14];
+				HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
 			}
 				
 			if((i >=20 && i <= 23)|| (i >=26 && i < 26+frame_size-data_size)) //VLAN or Supplementary zeros of paylod
 			{
 				frame[i] = 0;
+				HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
 			}
 				
 			if(i == 24) //Length
 			{
 				frame[i+1] = temp->payloadSize[0]; 
+				HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
 			}
 			if(i == 25) //Length
 			{
 				frame[i-1] = temp->payloadSize[1];
+				HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
 			}				
 			if(i >=26+frame_size-data_size && i < 26+frame_size) //Data
 			{
 				frame[i] = temp->payload[i-(26+frame_size-data_size)];
+				CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
 			}	
 			if(i >= 26+frame_size) //CRC
 			{
-				
+				frame[26+frame_size] = CRC_res & 0xFF; //lsb first
+				frame[27+frame_size] = CRC_res & 0xFF00;
+				frame[28+frame_size] = CRC_res & 0xFF0000;
+				frame[29+frame_size] = CRC_res & 0xFF000000; //msb last
+				i=frame_size + 30;
 			}
 			
 		}
+		//frame was fully build 
+		for(i = 0; i < frame_size+30; i++) //sending the frame 
+		{
+			if(isPhyTxReady()) 
+				sendByte(frame[i]);
+		}
+		
 			
 		
 		
@@ -221,7 +314,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+	__HAL_RCC_CRC_CLK_ENABLE();
   /* USER CODE END Init */
 
   /* Configure the system clock */
