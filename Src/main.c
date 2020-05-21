@@ -50,6 +50,7 @@
 #define FRAME_LENGTH_ERROR 101
 #define PAYLOAD_LENGTH_ERROR 102 //must be greater than 42 and lesser than 1500
 #define PREAMBLE_ERROR 103
+#define NO_ERROR 104
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -64,6 +65,8 @@ UART_HandleTypeDef huart2;
 /* Private variables ---------------------------------------------------------*/
 
 uint8_t myMAC[] ={0xcc,0xcc,0xcc,0xcc,0xcc,0xcc}; 	//Our MAC address
+uint32_t is_frame_ready = 0;
+Ethernet_res frame_res;
 
 
 
@@ -115,14 +118,53 @@ extern uint8_t isRxByteReady(void);									//check if there is new byte receive
 extern uint8_t getByte(void); 											//get byte from phy, it's mandatory to use "isRxByteReady()" before calling this function.
 void LLC_RX()
 {
-	
+	uint32_t i;
+	if(is_frame_ready)
+	{
+		printf("Received a new frame\n");
+		switch(frame_res.syndrom)
+		{
+			case NO_ERROR:
+				printf("Destination Address is: ");
+				for(i = 0; i < MAC_ADDRESS_LEN; i++)
+				{
+					printf("%x",frame_res.destinationMac[i]);
+				}
+				printf("\nSource Address is: ");
+				for(i = 0; i< MAC_ADDRESS_LEN; i++)
+				{
+					printf("%x",frame_res.sourceMac[i]);
+				}
+				printf("\nPayload is: ");
+				for(i = 0; i < frame_res.payloadSize[0] + frame_res.payloadSize[1]*256; i++)
+				{
+					printf("%x", frame_res.payload[i]);
+				}
+				printf("\nFrame end.\n");
+				break;
+			case PREAMBLE_ERROR:
+				printf("\nFrame end.\n");
+				break;
+			case PAYLOAD_LENGTH_ERROR:
+				printf("\nFrame end.\n");
+				break;
+			case FRAME_LENGTH_ERROR:
+				printf("\nFrame end.\n");
+				break;
+			case CRC_ERROR:
+				printf("\nFrame end.\n");
+				break;
+				
+			
+		}
+	}
 }
 
 void MAC_RX()
 {
 	uint32_t Rx_CRC_res;
 	uint32_t Tx_CRC_res;
-	static Ethernet_res frame_res;
+	uint32_t data_size;
 	uint32_t i;
 	static uint32_t error = 0;
 	uint32_t frame_counter = 1;
@@ -149,6 +191,7 @@ void MAC_RX()
 	}
 	else if(frame_ended) //start buliding the frame
 	{
+		frame_res.syndrom = NO_ERROR;
 		if(frame_counter < 64 || frame_counter > 1530) // frame length error
 		{
 			frame_res.syndrom = FRAME_LENGTH_ERROR;
@@ -172,19 +215,41 @@ void MAC_RX()
 			if(!error)
 			{
 				HAL_CRC_Calculate(&hcrc,(uint32_t*)&frame[8],1);
-				for(i = 9; i<frame_counter - 4; i++) //might have to build eth_res struct here 
+				frame_res.destinationMac[0] = frame[8];
+				for(i = 9; i<frame_counter - 4; i++) //crc calc + constructing the frame
 				{
 					Rx_CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[8],1);
+					if(i >= 9 && i <= 13) //destination address
+						frame_res.destinationMac[i-8] = frame[i];
+					else if(i >= 14 && i <= 19) //source address
+						frame_res.sourceMac[i-14] = frame[i];
+					else if(i >= 24 && i <= 25) //payload size
+					{
+						frame_res.payloadSize[0] = frame[25];
+						frame_res.payloadSize[1] = frame[24];
+						data_size = frame[25] + frame[24]*256; 
+						frame_res.payload = (uint8_t*)malloc(data_size*sizeof(uint8_t));
+						i=26;
+					}
+					else if(i >= 26 && i <= 26 + data_size) //data 
+					{
+						 frame_res.payload[i-26] = frame[i];
+					}	
 				}
 				Tx_CRC_res = frame[frame_counter-4] + frame[frame_counter-3]*256 + frame[frame_counter-2]*65536 + frame[frame_counter-1]*(2^24); 
-				if(Tx_CRC_res != Rx_CRC_res)
+				if(Tx_CRC_res != Rx_CRC_res) 
 				{
 					frame_res.syndrom = CRC_ERROR;
 					error = 1;
 				}
+				else if(data_size > 1500)
+				{
+					frame_res.syndrom = PAYLOAD_LENGTH_ERROR;
+					error = 1;
+				}
 				//TO DO: fuck shit up 
 			}
-
+			is_frame_ready = 1;
 		}
 		
 	}
