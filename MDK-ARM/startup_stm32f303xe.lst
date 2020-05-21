@@ -681,13 +681,14 @@ ARM Macro Assembler    Page 11
   426 0000001C                 END
               00000000 
               00000000 
-Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
-erwork --depend=dll\startup_stm32f303xe.d -odll\startup_stm32f303xe.o -I.\RTE\_
-DLL -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include -IC:\Keil_v5\ARM\PACK\K
-eil\STM32F3xx_DFP\2.1.0\Drivers\CMSIS\Device\ST\STM32F3xx\Include --predefine="
-__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION S
-ETA 524" --predefine="_RTE_ SETA 1" --predefine="STM32F303xE SETA 1" --list=sta
-rtup_stm32f303xe.lst startup_stm32f303xe.s
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp.sp --apcs=
+interwork --depend=dll\startup_stm32f303xe.d -odll\startup_stm32f303xe.o -I.\RT
+E\_DLL -I"C:\Users\דניאל ספייסקי\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\
+Core\Include" -I"C:\Users\דניאל ספייסקי\AppData\Local\Arm\Packs\Keil\STM32F3xx_
+DFP\2.1.0\Drivers\CMSIS\Device\ST\STM32F3xx\Include" --predefine="__EVAL SETA 1
+" --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 529" --pr
+edefine="_RTE_ SETA 1" --predefine="STM32F303xE SETA 1" --list=startup_stm32f30
+3xe.lst startup_stm32f303xe.s
 
 
 

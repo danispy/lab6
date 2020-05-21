@@ -1,4 +1,4 @@
---cpu=Cortex-M4.fp
+--cpu=Cortex-M4.fp.sp
 "dll\startup_stm32f303xe.o"
 "dll\main.o"
 "dll\stm32f3xx_it.o"

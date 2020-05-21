@@ -30,5 +30,7 @@ dll\stm32f3xx_hal_crc_ex.o: ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_i2
 dll\stm32f3xx_hal_crc_ex.o: ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_i2c_ex.h
 dll\stm32f3xx_hal_crc_ex.o: ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_pwr.h
 dll\stm32f3xx_hal_crc_ex.o: ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_pwr_ex.h
+dll\stm32f3xx_hal_crc_ex.o: ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_tim.h
+dll\stm32f3xx_hal_crc_ex.o: ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_tim_ex.h
 dll\stm32f3xx_hal_crc_ex.o: ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_uart.h
 dll\stm32f3xx_hal_crc_ex.o: ../Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_uart_ex.h
