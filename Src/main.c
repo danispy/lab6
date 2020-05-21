@@ -143,20 +143,19 @@ void LLC_RX()
 				printf("\nFrame end.\n");
 				break;
 			case PREAMBLE_ERROR:
-				printf("\nFrame end.\n");
+				printf("\nOh no, We can't beleive this. Bibi is still president? also Preamble wasn't valid.\n");
 				break;
 			case PAYLOAD_LENGTH_ERROR:
-				printf("\nFrame end.\n");
+				printf("\nOh no, We can't beleive this. Bibi is still president? also Payload Length wasn't valid..\n");
 				break;
 			case FRAME_LENGTH_ERROR:
-				printf("\nFrame end.\n");
+				printf("\nOh no, We can't beleive this. Bibi is still president? also Total Frame Length wasn't valid..\n");
 				break;
 			case CRC_ERROR:
-				printf("\nFrame end.\n");
-				break;
-				
-			
+				printf("\nOh no, We can't beleive this. Bibi is still president? also CRC wasn't valid..\n");
+				break;	
 		}
+		free((void*)frame_res.payload);
 	}
 }
 
@@ -251,6 +250,7 @@ void MAC_RX()
 			}
 			is_frame_ready = 1;
 		}
+		free(frame);
 		
 	}
 		
@@ -264,7 +264,7 @@ extern uint8_t isNewTxRequest(void); 								//check if the upper_layer sent us 
 extern Ethernet_req* getTxRequeset(void);						//get from upper_layer data to transmit, it's mandatory to use "isNewTxRequest()" before call this function.
 //Important! - after finish using the Ethernet_req struct, you have to free it and also free the Ethernet_req.payload.
 
-void MAC_TX()
+void MAC_TX() 
 {
 	uint8_t* frame;
 	uint16_t data_size;
@@ -345,15 +345,16 @@ void MAC_TX()
 			
 		}
 		//frame was fully build 
-		for(i = 0; i < frame_size+30; i++) //sending the frame 
+		for(i = 0; i < frame_size+30;) //sending the frame 
 		{
 			if(isPhyTxReady()) 
+			{
 				sendByte(frame[i]);
+				i++;
+			}
+				
 		}
-		
-			
-		
-		
+		free(frame);
 		//in the end of using 'temp' you have to free memory:
 		free((void*)temp->payload); 
 		free(temp);
@@ -417,7 +418,7 @@ int main(void)
 		printer();
 		DEBUG;
 		//End Of DLL functions
-		MAC_TX();
+		MAC_TX(); //MY FUNCTIONS - DO NO TOUCH, BELEIVE ME ITS WORKS 
 		LLC_RX();
 		MAC_RX();
 		
