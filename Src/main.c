@@ -161,47 +161,67 @@ void LLC_RX()
 
 void MAC_RX()
 {
+	uint8_t byte = 4;
 	static uint32_t allocate = 1;
 	uint32_t Rx_CRC_res;
 	uint32_t Tx_CRC_res;
 	uint32_t data_size;
 	uint32_t i;
 	static uint32_t error = 0;
-	uint32_t frame_counter = 1;
+	static uint32_t frame_counter = 1;
+	static uint32_t timer_on = 0;
 	uint8_t* frame = 0;
 	if(allocate)
 	{
 		frame = (uint8_t*)malloc(sizeof(uint8_t));
+		frame[0] = byte;
+		printf("nice; %d;",frame[0]);
 		allocate = 0;
 	}
-	static uint32_t timer_on = 0;
 	if(isRxByteReady())
 	{
+		printf("byte is ready;");
 		if(timer_on)
 		{
 			HAL_TIM_Base_Stop(&htim2);
 			HAL_TIM_Base_Stop_IT(&htim2);
 			timer_on = 0;
+			printf("turned off timer;");
 		}
 		if(frame_counter==1)
-			frame[0] = getByte();
-		frame = (uint8_t*)calloc(1,sizeof(uint8_t));
-		frame[frame_counter] = getByte();
-		frame_counter++;
+		{
+			printf("idk1;");
+			//byte = getByte();
+			printf("new data is: %02x",byte);
+			frame[0] = byte;
+			printf("idk2;");
+		}
+		else
+		{
+			printf("before calloc;");
+			frame = (uint8_t*)calloc(1,sizeof(uint8_t));
+			printf("did rx calloc;");
+			frame[frame_counter] = getByte();
+			frame_counter++;
+		}
 		HAL_TIM_Base_Start(&htim2);
 		HAL_TIM_Base_Start_IT(&htim2);
 		timer_on = 1;
+		printf("received byte;");
 
 	}
 	else if(frame_ended) //start buliding the frame
 	{
+		printf("frame ended;");
 		frame_res.syndrom = NO_ERROR;
 		if(frame_counter < 64 || frame_counter > 1530) // frame length error
 		{
+			printf("FRAME_LENGTH_ERROR;");
 			frame_res.syndrom = FRAME_LENGTH_ERROR;
 		}
 		else
 		{
+			printf("checking pramble;");
 			for(i = 0; i < 7; i++)
 			{
 				if(frame[i] != 0xAA)
@@ -218,6 +238,7 @@ void MAC_RX()
 			}
 			if(!error)
 			{
+				printf("preamble ok, check crc and build frame;");
 				HAL_CRC_Calculate(&hcrc,(uint32_t*)&frame[8],1);
 				frame_res.destinationMac[0] = frame[8];
 				for(i = 9; i<frame_counter - 4; i++) //crc calc + constructing the frame
@@ -253,6 +274,7 @@ void MAC_RX()
 				}
 				//TO DO: fuck shit up 
 			}
+			printf("finished building;");
 			is_frame_ready = 1;
 			allocate = 1;
 		}
@@ -355,10 +377,16 @@ void MAC_TX()
 			}
 				
 		}
+		gap_time_passed = 0;
+		HAL_TIM_Base_Start(&htim3);
+		HAL_TIM_Base_Start_IT(&htim3);
 		free(frame);
+		printf("freed frame;");
 		//in the end of using 'temp' you have to free memory:
-		free((void*)temp->payload); 
+		free((void*)temp->payload);
+		printf("freed payload;");
 		free(temp);
+		printf("freed temp;");
 	}
 	
 	
@@ -421,8 +449,8 @@ int main(void)
 		DEBUG;
 		//End Of DLL functions
 		MAC_TX(); //MY FUNCTIONS - DO NO TOUCH, BELEIVE ME ITS WORKS 
-		LLC_RX();
 		MAC_RX();
+		LLC_RX();
 		
   /* USER CODE END WHILE */
 

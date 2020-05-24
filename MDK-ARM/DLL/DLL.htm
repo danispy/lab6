@@ -3,7 +3,7 @@
 <title>Static Call Graph - [DLL\DLL.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image DLL\DLL.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sun May 24 12:04:05 2020
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sun May 24 13:43:50 2020
 <BR><P>
 <H3>Maximum Stack Usage =        232 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -450,6 +450,7 @@ Global Symbols
 <LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CRC_Handle_16
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_TX
+<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_RX
 </UL>
 
 <P><STRONG><a name="[6d]"></a>HAL_CRC_Calculate</STRONG> (Thumb, 102 bytes, Stack size 24 bytes, stm32f3xx_hal_crc.o(i.HAL_CRC_Calculate))
@@ -459,6 +460,7 @@ Global Symbols
 <LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CRC_Handle_16
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_TX
+<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_RX
 </UL>
 
 <P><STRONG><a name="[6e]"></a>HAL_CRC_Init</STRONG> (Thumb, 112 bytes, Stack size 8 bytes, stm32f3xx_hal_crc.o(i.HAL_CRC_Init))
@@ -681,11 +683,13 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[a9]"></a>HAL_TIM_Base_Start</STRONG> (Thumb, 26 bytes, Stack size 0 bytes, stm32f3xx_hal_tim.o(i.HAL_TIM_Base_Start))
-<BR><BR>[Called By]<UL><LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_RX
+<BR><BR>[Called By]<UL><LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_TX
+<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_RX
 </UL>
 
 <P><STRONG><a name="[aa]"></a>HAL_TIM_Base_Start_IT</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, stm32f3xx_hal_tim.o(i.HAL_TIM_Base_Start_IT))
-<BR><BR>[Called By]<UL><LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_RX
+<BR><BR>[Called By]<UL><LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_TX
+<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_RX
 </UL>
 
 <P><STRONG><a name="[a6]"></a>HAL_TIM_Base_Stop</STRONG> (Thumb, 44 bytes, Stack size 0 bytes, stm32f3xx_hal_tim.o(i.HAL_TIM_Base_Stop))
@@ -823,8 +827,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a4]"></a>MAC_RX</STRONG> (Thumb, 114 bytes, Stack size 16 bytes, main.o(i.MAC_RX))
-<BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = MAC_RX &rArr; calloc &rArr; malloc
+<P><STRONG><a name="[a4]"></a>MAC_RX</STRONG> (Thumb, 496 bytes, Stack size 40 bytes, main.o(i.MAC_RX))
+<BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = MAC_RX &rArr; HAL_CRC_Calculate &rArr; CRC_Handle_8
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;isRxByteReady
 <LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;getByte
@@ -832,24 +836,30 @@ Global Symbols
 <LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Stop
 <LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Start_IT
 <LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Start
+<LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_CRC_Calculate
+<LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_CRC_Accumulate
 <LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;calloc
 <LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
 <LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;free
+<LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[ab]"></a>MAC_TX</STRONG> (Thumb, 348 bytes, Stack size 40 bytes, main.o(i.MAC_TX))
+<P><STRONG><a name="[ab]"></a>MAC_TX</STRONG> (Thumb, 388 bytes, Stack size 40 bytes, main.o(i.MAC_TX))
 <BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = MAC_TX &rArr; HAL_CRC_Calculate &rArr; CRC_Handle_8
 </UL>
 <BR>[Calls]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;sendByte
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;isPhyTxReady
 <LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;isNewTxRequest
 <LI><a href="#[ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;getTxRequeset
+<LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Start_IT
+<LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Start
 <LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_CRC_Calculate
 <LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_CRC_Accumulate
 <LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
 <LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;free
+<LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -1003,6 +1013,8 @@ Global Symbols
 </UL>
 <BR>[Called By]<UL><LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;printer
 <LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_TX
+<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_RX
 <LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LLC_RX
 </UL>
 
