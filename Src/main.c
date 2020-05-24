@@ -161,13 +161,19 @@ void LLC_RX()
 
 void MAC_RX()
 {
+	static uint32_t allocate = 1;
 	uint32_t Rx_CRC_res;
 	uint32_t Tx_CRC_res;
 	uint32_t data_size;
 	uint32_t i;
 	static uint32_t error = 0;
 	uint32_t frame_counter = 1;
-	uint8_t* frame = (uint8_t*)malloc(sizeof(uint8_t));
+	uint8_t* frame = 0;
+	if(allocate)
+	{
+		frame = (uint8_t*)malloc(sizeof(uint8_t));
+		allocate = 0;
+	}
 	static uint32_t timer_on = 0;
 	if(isRxByteReady())
 	{
@@ -177,7 +183,6 @@ void MAC_RX()
 			HAL_TIM_Base_Stop_IT(&htim2);
 			timer_on = 0;
 		}
-		timer_on = 0;
 		if(frame_counter==1)
 			frame[0] = getByte();
 		frame = (uint8_t*)calloc(1,sizeof(uint8_t));
@@ -185,7 +190,7 @@ void MAC_RX()
 		frame_counter++;
 		HAL_TIM_Base_Start(&htim2);
 		HAL_TIM_Base_Start_IT(&htim2);
-		timer_on = 0;
+		timer_on = 1;
 
 	}
 	else if(frame_ended) //start buliding the frame
@@ -249,6 +254,7 @@ void MAC_RX()
 				//TO DO: fuck shit up 
 			}
 			is_frame_ready = 1;
+			allocate = 1;
 		}
 		free(frame);
 		
@@ -275,7 +281,6 @@ void MAC_TX()
 	{
 		Ethernet_req* temp = getTxRequeset();
 		data_size = temp->payloadSize[0] + (temp->payloadSize[1]*256); 
-		
 		if(data_size < 42)
 		{
 			frame = (uint8_t *)malloc(72*sizeof(uint8_t));
@@ -376,7 +381,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-	__HAL_RCC_CRC_CLK_ENABLE();
+	
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -402,8 +407,9 @@ int main(void)
 	printf("------------------------------------------------------------\r\n");
 	printf("Press any key to start\r\n");
 	DllAlive = 1; //DLL is on!
-
-  /* USER CODE END 2 */
+	__HAL_RCC_CRC_CLK_ENABLE();
+	
+  /* USER CODE END 2 */	
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */

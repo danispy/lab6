@@ -138,8 +138,8 @@ void USART2_IRQHandler(void)
 		case UART_STATE_IDLE:	
 				if (!req_desc) // only if req is free! then free for getting new req.
 				{ 
-					req_desc =(Ethernet_req*) calloc (sizeof(Ethernet_req),1);
-					payload = (uint8_t*) calloc (1,TX_BUFFER_SIZE);
+					req_desc =(Ethernet_req*) malloc (sizeof(Ethernet_req));
+					payload = (uint8_t*) malloc (TX_BUFFER_SIZE);
 					if (req_desc && payload)
 					{
 						req_desc->payload = payload;

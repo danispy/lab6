@@ -3,7 +3,7 @@
 <title>Static Call Graph - [DLL\DLL.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image DLL\DLL.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Thu May 21 18:22:51 2020
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sun May 24 12:04:05 2020
 <BR><P>
 <H3>Maximum Stack Usage =        232 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -366,8 +366,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
 </UL>
-<BR>[Called By]<UL><LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART2_IRQHandler
-<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_RX
+<BR>[Called By]<UL><LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_RX
 </UL>
 
 <P><STRONG><a name="[5d]"></a>strtol</STRONG> (Thumb, 112 bytes, Stack size 32 bytes, strtol.o(.text))
@@ -824,7 +823,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a4]"></a>MAC_RX</STRONG> (Thumb, 104 bytes, Stack size 16 bytes, main.o(i.MAC_RX))
+<P><STRONG><a name="[a4]"></a>MAC_RX</STRONG> (Thumb, 114 bytes, Stack size 16 bytes, main.o(i.MAC_RX))
 <BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = MAC_RX &rArr; calloc &rArr; malloc
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;isRxByteReady
@@ -974,13 +973,13 @@ Global Symbols
 <LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_CheckIdleState
 </UL>
 
-<P><STRONG><a name="[30]"></a>USART2_IRQHandler</STRONG> (Thumb, 226 bytes, Stack size 24 bytes, template.o(i.USART2_IRQHandler))
+<P><STRONG><a name="[30]"></a>USART2_IRQHandler</STRONG> (Thumb, 222 bytes, Stack size 24 bytes, template.o(i.USART2_IRQHandler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = USART2_IRQHandler &rArr; puts &rArr; fputc &rArr; HAL_UART_Transmit &rArr; UART_WaitOnFlagUntilTimeout
 </UL>
 <BR>[Calls]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_Transmit
 <LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_IRQHandler
 <LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strtol
-<LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;calloc
+<LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
 <LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;free
 <LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;puts
 </UL>
@@ -1091,7 +1090,8 @@ Global Symbols
 <P><STRONG><a name="[5c]"></a>malloc</STRONG> (Thumb, 92 bytes, Stack size 20 bytes, malloc.o(i.malloc))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = malloc
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_TX
+<BR>[Called By]<UL><LI><a href="#[30]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART2_IRQHandler
+<LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_TX
 <LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MAC_RX
 <LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;calloc
 </UL>
