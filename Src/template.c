@@ -143,6 +143,7 @@ void USART2_IRQHandler(void)
 					if (req_desc && payload)
 					{
 						req_desc->payload = payload;
+						req_desc->vld = 0;
 						uartState = UART_STATE_GETTING_MAC ; 
 						printer_flag = PRINT_REQ_MAC;
 						index = 0;

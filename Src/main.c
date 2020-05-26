@@ -121,7 +121,7 @@ void LLC_RX()
 	uint32_t i;
 	if(is_frame_ready)
 	{
-		printf("Received a new frame\n");
+		printf("Received a new frame\r\n");
 		switch(frame_res.syndrom)
 		{
 			case NO_ERROR:
@@ -130,158 +130,168 @@ void LLC_RX()
 				{
 					printf("%x",frame_res.destinationMac[i]);
 				}
-				printf("\nSource Address is: ");
+				printf("\r\nSource Address is: ");
 				for(i = 0; i< MAC_ADDRESS_LEN; i++)
 				{
 					printf("%x",frame_res.sourceMac[i]);
 				}
-				printf("\nPayload is: ");
+				printf("\r\nPayload is: ");
 				for(i = 0; i < frame_res.payloadSize[0] + frame_res.payloadSize[1]*256; i++)
 				{
-					printf("%x", frame_res.payload[i]);
+					printf("%c", frame_res.payload[i]);
 				}
-				printf("\nFrame end.\n");
+				printf("\r\nFrame end.\r\n");
 				break;
 			case PREAMBLE_ERROR:
-				printf("\nOh no, We can't beleive this. Bibi is still president? also Preamble wasn't valid.\n");
+				printf("\r\nOh no, We can't beleive this. Bibi is still prime minister? also Preamble wasn't valid.\r\n");
 				break;
 			case PAYLOAD_LENGTH_ERROR:
-				printf("\nOh no, We can't beleive this. Bibi is still president? also Payload Length wasn't valid..\n");
+				printf("\r\nOh no, We can't beleive this. Bibi is still prime minister? also Payload Length wasn't valid..\r\n");
 				break;
 			case FRAME_LENGTH_ERROR:
-				printf("\nOh no, We can't beleive this. Bibi is still president? also Total Frame Length wasn't valid..\n");
+				printf("\r\nOh no, We can't beleive this. Bibi is still prime minister? also Total Frame Length wasn't valid..\r\n");
 				break;
 			case CRC_ERROR:
-				printf("\nOh no, We can't beleive this. Bibi is still president? also CRC wasn't valid..\n");
+				printf("\nOh no, We can't beleive this. Bibi is still prime minister? also CRC wasn't valid..\n");
 				break;	
 		}
+		is_frame_ready = 0;
 		free((void*)frame_res.payload);
 	}
 }
 
 void MAC_RX()
 {
-	uint8_t byte = 4;
+	uint8_t byte = 0;
 	static uint32_t allocate = 1;
-	uint32_t Rx_CRC_res;
-	uint32_t Tx_CRC_res;
-	uint32_t data_size;
-	uint32_t i;
+	uint8_t Rx_CRC_res = 0;
+	uint8_t Tx_CRC_res = 0;
+	static uint32_t data_size = 0;
+	int32_t i = 0;
 	static uint32_t error = 0;
-	static uint32_t frame_counter = 1;
+	static uint32_t rx_frame_counter = 0;
 	static uint32_t timer_on = 0;
-	uint8_t* frame = 0;
-	if(allocate)
-	{
-		frame = (uint8_t*)malloc(sizeof(uint8_t));
-		frame[0] = byte;
-		printf("nice; %d;",frame[0]);
-		allocate = 0;
-	}
+	static uint8_t rx_frame[1522];
+	static uint32_t preamble_counter = 0;
+	static uint32_t stat = 0;
+	static uint32_t timer = 0;
+
 	if(isRxByteReady())
 	{
-		printf("byte is ready;");
 		if(timer_on)
 		{
-			HAL_TIM_Base_Stop(&htim2);
-			HAL_TIM_Base_Stop_IT(&htim2);
-			timer_on = 0;
-			printf("turned off timer;");
+			//HAL_TIM_Base_Stop_IT(&htim2);
+			timer = 0;
+			timer_on = 0;		
 		}
-		if(frame_counter==1)
+		if(preamble_counter < 7)
 		{
-			printf("idk1;");
-			//byte = getByte();
-			printf("new data is: %02x",byte);
-			frame[0] = byte;
-			printf("idk2;");
+			byte = getByte();
+			if(byte == 0xAA)
+				preamble_counter++;
+			else
+			{
+				preamble_counter = 0;
+			}
+		}
+		else if(preamble_counter == 7)
+		{
+			byte = getByte();
+			if(byte == 0xAB)
+			{
+				rx_frame_counter = 0;
+				preamble_counter++;
+			}
+			else
+			{
+				preamble_counter = 0;
+			}
 		}
 		else
 		{
-			printf("before calloc;");
-			frame = (uint8_t*)calloc(1,sizeof(uint8_t));
-			printf("did rx calloc;");
-			frame[frame_counter] = getByte();
-			frame_counter++;
-		}
-		HAL_TIM_Base_Start(&htim2);
-		HAL_TIM_Base_Start_IT(&htim2);
-		timer_on = 1;
-		printf("received byte;");
-
+			if(rx_frame_counter==0)
+			{
+				rx_frame[0] = getByte();
+				rx_frame_counter++;
+			}
+			else
+			{
+				if(rx_frame_counter < 1522)
+				{
+					byte = getByte();
+					rx_frame[rx_frame_counter] = byte;
+					rx_frame_counter++;
+				}
+				else
+				{
+					frame_res.syndrom = FRAME_LENGTH_ERROR;
+					preamble_counter = 0;
+					rx_frame_counter = 0;
+					is_frame_ready = 1;
+				}
+			}
+			//HAL_TIM_Base_Start_IT(&htim2);
+			timer_on = 1;
+		}		
 	}
-	else if(frame_ended) //start buliding the frame
+	else
 	{
-		printf("frame ended;");
+		if(timer_on)
+			timer++;
+	}
+	
+	if(timer == 10000) //start buliding the frame
+	{
+		timer = 0;
+		timer_on = 0;
+		//HAL_TIM_Base_Stop_IT(&htim2);
 		frame_res.syndrom = NO_ERROR;
-		if(frame_counter < 64 || frame_counter > 1530) // frame length error
+		if(rx_frame_counter < 64) // frame length error
 		{
-			printf("FRAME_LENGTH_ERROR;");
 			frame_res.syndrom = FRAME_LENGTH_ERROR;
 		}
-		else
+		else 
 		{
-			printf("checking pramble;");
-			for(i = 0; i < 7; i++)
+			hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_ENABLE;
+			Rx_CRC_res = HAL_CRC_Calculate(&hcrc,(uint32_t*)&rx_frame[0],1);
+			frame_res.destinationMac[0] = rx_frame[0];
+			for(i = 1; i<rx_frame_counter - 4; i++) //crc calc + constructing the frame
 			{
-				if(frame[i] != 0xAA)
+				Rx_CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&rx_frame[i],1);
+				if(i >= 1 && i <= 5) //destination address
+					frame_res.destinationMac[i] = rx_frame[i];
+				else if(i >= 6 && i <= 11) //source address
 				{
-					frame_res.syndrom = PREAMBLE_ERROR;
-					error = 1;
+					frame_res.sourceMac[i-6] = rx_frame[i];
 				}
-					
+				else if(i >= 16 && i <= 17) //payload size
+				{
+					frame_res.payloadSize[0] = rx_frame[17];
+					frame_res.payloadSize[1] = rx_frame[16];
+					data_size = rx_frame[17] + rx_frame[16]*256; 
+					frame_res.payload = (uint8_t*)malloc(data_size*sizeof(uint8_t));
+				}
+				else if(i >= 18 && i < 18 + data_size) //data 
+				{
+					 frame_res.payload[i-18] = rx_frame[i];
+				}	
 			}
-			if(frame[7] != 0xAB)
+			Tx_CRC_res = rx_frame[rx_frame_counter-4] + rx_frame[rx_frame_counter-3]*256 + rx_frame[rx_frame_counter-2]*65536 + rx_frame[rx_frame_counter-1]*(2^24); 
+			if(Tx_CRC_res != Rx_CRC_res) 
 			{
-				frame_res.syndrom = PREAMBLE_ERROR;
-				error = 1;
+				frame_ended = 0;
+				frame_res.syndrom = CRC_ERROR;
 			}
-			if(!error)
+			else if(data_size > 1500)
 			{
-				printf("preamble ok, check crc and build frame;");
-				HAL_CRC_Calculate(&hcrc,(uint32_t*)&frame[8],1);
-				frame_res.destinationMac[0] = frame[8];
-				for(i = 9; i<frame_counter - 4; i++) //crc calc + constructing the frame
-				{
-					Rx_CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[8],1);
-					if(i >= 9 && i <= 13) //destination address
-						frame_res.destinationMac[i-8] = frame[i];
-					else if(i >= 14 && i <= 19) //source address
-						frame_res.sourceMac[i-14] = frame[i];
-					else if(i >= 24 && i <= 25) //payload size
-					{
-						frame_res.payloadSize[0] = frame[25];
-						frame_res.payloadSize[1] = frame[24];
-						data_size = frame[25] + frame[24]*256; 
-						frame_res.payload = (uint8_t*)malloc(data_size*sizeof(uint8_t));
-						i=26;
-					}
-					else if(i >= 26 && i <= 26 + data_size) //data 
-					{
-						 frame_res.payload[i-26] = frame[i];
-					}	
-				}
-				Tx_CRC_res = frame[frame_counter-4] + frame[frame_counter-3]*256 + frame[frame_counter-2]*65536 + frame[frame_counter-1]*(2^24); 
-				if(Tx_CRC_res != Rx_CRC_res) 
-				{
-					frame_res.syndrom = CRC_ERROR;
-					error = 1;
-				}
-				else if(data_size > 1500)
-				{
-					frame_res.syndrom = PAYLOAD_LENGTH_ERROR;
-					error = 1;
-				}
-				//TO DO: fuck shit up 
+				frame_res.syndrom = PAYLOAD_LENGTH_ERROR;
 			}
-			printf("finished building;");
-			is_frame_ready = 1;
-			allocate = 1;
 		}
-		free(frame);
-		
+		i=0;
+		preamble_counter = 0;
+		rx_frame_counter = 0;
+		is_frame_ready = 1;
 	}
-		
 }
 
 /* Dll Tx functions */
@@ -294,15 +304,24 @@ extern Ethernet_req* getTxRequeset(void);						//get from upper_layer data to tr
 
 void MAC_TX() 
 {
-	uint8_t* frame;
-	uint16_t data_size;
-	uint32_t frame_size;
-	uint32_t i;
-	uint32_t CRC_res;
+	static uint8_t* frame;
+	static uint32_t timer_on = 0;
+	static uint16_t data_size = 0;
+	static uint32_t frame_size = 0;
+	static uint32_t i = 0;
+	static uint32_t CRC_res = 0;
+	static uint32_t tx_ready_to_send = 0;
+	uint32_t j = 0;
 	if (isNewTxRequest() && gap_time_passed)
 	{
+		if(timer_on)
+		{
+			HAL_TIM_Base_Stop_IT(&htim3);
+			timer_on = 0;
+		}
 		Ethernet_req* temp = getTxRequeset();
-		data_size = temp->payloadSize[0] + (temp->payloadSize[1]*256); 
+
+		data_size = temp->payloadSize[0] + (temp->payloadSize[1]*256);
 		if(data_size < 42)
 		{
 			frame = (uint8_t *)malloc(72*sizeof(uint8_t));
@@ -313,7 +332,7 @@ void MAC_TX()
 			frame = (uint8_t *)malloc((data_size+30)*sizeof(uint8_t));
 			frame_size = data_size;
 		}
-			
+				
 		for(i=0; i<frame_size+30; i++)
 		{
 			if(i < 7) //preamble 
@@ -328,33 +347,38 @@ void MAC_TX()
 			{
 				frame[i] = temp->destinationMac[i-8];
 				if(i==8) 
-					HAL_CRC_Calculate(&hcrc,(uint32_t*)&frame[i],1);
+					CRC_res = HAL_CRC_Calculate(&hcrc,(uint32_t*)&frame[i],1);
 				else
-					HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
+					CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);;
 			}
 			else if(i >=14 && i <= 19) //source Mac gam be hearot 
 			{
-				frame[i] = temp->sourceMac[i-14];
-				HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
+				frame[i] = myMAC[i-14];
+				CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
 			}
-			else if((i >=20 && i <= 23)|| (i >=26 && i < 26+frame_size-data_size)) //VLAN or Supplementary zeros of paylod
+			else if(i >=20 && i <= 23) //VLAN
 			{
 				frame[i] = 0;
-				HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
+				CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
 			}
 			else if(i == 24) //Length
 			{
 				frame[i+1] = temp->payloadSize[0]; 
-				HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
+				CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
 			}
 			else if(i == 25) //Length
 			{
 				frame[i-1] = temp->payloadSize[1];
-				HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
-			}				
-			else if(i >=26+frame_size-data_size && i < 26+frame_size) //Data
+				CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
+			}
+			else if(i >=26 && i < 26+data_size)
 			{
-				frame[i] = temp->payload[i-(26+frame_size-data_size)];
+				frame[i] = temp->payload[i-26];
+				CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
+			}
+			else if(i >=26+data_size && i < 26+frame_size) //Data
+			{
+				frame[i] = 0;
 				CRC_res = HAL_CRC_Accumulate(&hcrc,(uint32_t*)&frame[i],1);
 			}	
 			else if(i >= 26+frame_size) //CRC
@@ -367,28 +391,30 @@ void MAC_TX()
 			}
 			
 		}
-		//frame was fully build 
-		for(i = 0; i < frame_size+30;) //sending the frame 
-		{
-			if(isPhyTxReady()) 
-			{
-				sendByte(frame[i]);
-				i++;
-			}
-				
-		}
-		gap_time_passed = 0;
-		HAL_TIM_Base_Start(&htim3);
-		HAL_TIM_Base_Start_IT(&htim3);
-		free(frame);
-		printf("freed frame;");
+		//frame was fully build
+		tx_ready_to_send = 1;
+		i=0;
 		//in the end of using 'temp' you have to free memory:
 		free((void*)temp->payload);
-		printf("freed payload;");
 		free(temp);
-		printf("freed temp;");
 	}
-	
+	if(tx_ready_to_send && isPhyTxReady() && i < frame_size+30)
+	{
+		sendByte(frame[i]);
+		i++;
+	}
+	if(i == frame_size+30)
+	{
+		free(frame);
+		frame_size = 0;
+		data_size = 0;
+		CRC_res = 0;
+		i = 0;
+		tx_ready_to_send = 0;
+		gap_time_passed = 0;
+		HAL_TIM_Base_Start_IT(&htim3);
+		timer_on = 1;
+	}
 	
 }
 /* USER CODE END 0 */
@@ -437,7 +463,7 @@ int main(void)
 	DllAlive = 1; //DLL is on!
 	__HAL_RCC_CRC_CLK_ENABLE();
 	
-  /* USER CODE END 2 */	
+  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
