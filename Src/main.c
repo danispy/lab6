@@ -121,7 +121,7 @@ void LLC_RX()
 	uint32_t i;
 	if(is_frame_ready)
 	{
-		printf("Received a new frame\r\n");
+		printf("\r\nReceived a new frame\r\n");
 		switch(frame_res.syndrom)
 		{
 			case NO_ERROR:
@@ -140,19 +140,19 @@ void LLC_RX()
 				{
 					printf("%c", frame_res.payload[i]);
 				}
-				printf("\r\nFrame end.\r\n");
+				printf("\r\n\r\n");
 				break;
 			case PREAMBLE_ERROR:
-				printf("\r\nOh no, We can't beleive this. Bibi is still prime minister? also Preamble wasn't valid.\r\n");
+				printf("\r\nOh no, We can't beleive this. Bibi is still prime minister? also Preamble wasn't valid.\r\n\r\n");
 				break;
 			case PAYLOAD_LENGTH_ERROR:
-				printf("\r\nOh no, We can't beleive this. Bibi is still prime minister? also Payload Length wasn't valid..\r\n");
+				printf("\r\nOh no, We can't beleive this. Bibi is still prime minister? also Payload Length wasn't valid..\r\n\r\n");
 				break;
 			case FRAME_LENGTH_ERROR:
-				printf("\r\nOh no, We can't beleive this. Bibi is still prime minister? also Total Frame Length wasn't valid..\r\n");
+				printf("\r\nOh no, We can't beleive this. Bibi is still prime minister? also Total Frame Length wasn't valid..\r\n\r\n");
 				break;
 			case CRC_ERROR:
-				printf("\nOh no, We can't beleive this. Bibi is still prime minister? also CRC wasn't valid..\n");
+				printf("\nOh no, We can't beleive this. Bibi is still prime minister? also CRC wasn't valid..\r\n\r\n");
 				break;	
 		}
 		is_frame_ready = 0;
